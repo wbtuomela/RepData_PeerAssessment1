@@ -78,10 +78,19 @@ weekdays = c('Monday', 'Tuesday', 'Wednesday',
 weekends = c('Saturday', 'Sunday')
 day_of_week[day_of_week %in% weekdays] <- 1
 day_of_week[day_of_week %in% weekends] <- 2
+day_of_week <- sapply(day_of_week, as.numeric)
+names(day_of_week) <- NULL
 full$week <- day_of_week
-activity <- sapply(with(full, split(steps, interval)), mean)
+wda <- sapply(with(subset(full, week==1, select=c(steps, interval)),
+                   split(steps, interval)), mean)
+wea <- sapply(with(subset(full, week==2, select=c(steps, interval)),
+                   split(steps, interval)), mean)
+df <- data.frame(activity=as.vector(wda), interval=as.character(names(wda)),
+                 week=rep(1, length(wda)))
+df <- rbind(df, data.frame(activity=as.vector(wea), interval=as.character(names(wea)),
+                       week=rep(2, length(wea))))
+data <- transform(df, week=factor(week, labels=c("weekday", "weekend")))
 library(lattice)
-data <- transform(full, week=factor(week, labels=c('weekday', 'weekend')))
 xyplot(activity ~ interval | week, data=data, type="l", layout=c(1,2),
        ylab="Number of Steps")
 ```
